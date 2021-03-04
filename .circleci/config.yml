@@ -4,7 +4,8 @@ commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
-      # Add parameter here   
+      workflow_id:
+        type: string
     steps:
       - run:
           name: Destroy environments
@@ -16,11 +17,13 @@ commands:
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
-      # Add parameter here     
+      workflow_id:
+        type: string    
     steps:
       - run:
           name: Revert migrations
           # Add when this will run
+          when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
             SUCCESS = 1
@@ -44,6 +47,9 @@ jobs:
           name: Build front-end
           command: |
             # Your code here
+            cd frontend
+            npm i
+            npm run build
             exit 1
       - save_cache:
           paths: [frontend/node_modules]
@@ -60,26 +66,46 @@ jobs:
           name: Back-end build
           command: |
              # Your code here
-             exit 1
+             cd backend
+             npm i
+             npm run build
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
 
   test-frontend:
     docker:
-      # Docker image here
+      - image: circleci/node:13.8.0
     steps:
       # Checkout code from git
+      - checkout
       # Restore from cache
+      - restore_cache: 
+        keys: [frontend-build]
       # Your job code here
+      - run:
+        name: Test Frontend
+        command: |
+          cd frontend
+          npm i
+          npm run test
                 
   test-backend:
     docker:
-      # Docker image here
+      - image: circleci/node:13.8.0
     steps:
       # Checkout code from git
+      - checkout
       # Restore from cache
+      - restore_cache: 
+        keys: [backend-build]
       # Your job code here
+      - run:
+        name: Test Backend
+        command: |
+          cd backend
+          npm i
+          npm run test
             
   scan-frontend:
     docker:
