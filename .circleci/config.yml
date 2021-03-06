@@ -14,8 +14,8 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            # Your code here
-            exit 1
+            aws cloudformation delete-stack --stack-name udapeople-fron-<< parameters.workflow_id >>
+            aws cloudformation delete-stack --stack-name udapeople-back-<< parameters.workflow_id >>
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -210,7 +210,9 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-      # Here's where you will add some code to rollback on failure      
+      # Here's where you will add some code to rollback on failure
+      - destroy-environment:
+        workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}  
 
   configure-infrastructure:
     docker:
