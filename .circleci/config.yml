@@ -222,18 +222,24 @@ jobs:
       # Checkout code from git
       - checkout
       # Add ssh keys with fingerprint
+      - add_ssh_keys:
+          fingerprints: [f0:7b:d4:33:e6:65:e7:bc:d0:6d:36:b6:b0:62:87:18]
       # attach workspace
+      - attach_workspace:
+          at: ~/project/
       - run:
           name: Install dependencies
           command: |
-            # Your code here
-            exit 1
+            apk add --update ansible
+            pip install awscli
       - run:
           name: Configure server
           command: |
-            # Your code here
-            exit 1
-      # Here's where you will add some code to rollback on failure      
+            ansible-playbook -i .circleci/ansible/inventory.txt \
+              .circleci/ansible/configure-server.yml
+      # Here's where you will add some code to rollback on failure    
+      - destroy_environment:
+        workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}  
 
   run-migrations:
     docker:
