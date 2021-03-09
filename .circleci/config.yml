@@ -80,7 +80,7 @@ jobs:
              npm i
              npm run build
       - save_cache:
-          paths: [backend/node_modules]
+          paths: [backend/node_modules, backend/dist]
           key: backend-build
       - slack-notifier
 
@@ -226,7 +226,7 @@ jobs:
           fingerprints: [f0:7b:d4:33:e6:65:e7:bc:d0:6d:36:b6:b0:62:87:18]
       # attach workspace
       - attach_workspace:
-          at: ~/project/
+          at: ~/
       - run:
           name: Install dependencies
           command: |
@@ -259,7 +259,7 @@ jobs:
       - run:
           name: Send migration results to memstash
           command: |
-            if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
+            if grep -q "has been executed successfully." ~/backend/migrations_logs.txt
             then
               curl -H "Content-Type: text/plain" \
                 -H "token: 9fb91033-1f55-4eeb-a688-37b181f86f06" \
@@ -274,24 +274,37 @@ jobs:
   deploy-frontend:
     docker:
       # Docker image here that supports AWS CLI
-      - image: amazon/aws-cli
+      - image: python:3.7-alpine3.11
     steps:
       # Checkout code from git
+      - checkout
+      - restore_cache:
+          keys: [frontend-build]
       - run:
           name: Install dependencies
           command: |
             # your code here
+            apk add --update nodejs npm
+            pip install awscli
       - run:
           name: Get backend url
           command: |
             # your code here
-            export API_URL="http://${BACKEND_IP}:3030"
+            BACKEND_URL=$(curl -H "token: 9fb91033-1f55-4eeb-a688-37b181f86f06" \
+              --request GET https://api.memstash.io/values/udapeople-backend-url)
+            export API_URL="http://${BACKEND_URL}:3030"
             echo "${API_URL}"
       - run:
           name: Deploy frontend objects
           command: |
             # your code here
+            npm i
+            cd frontend
+            npm run build
+            aws s3 ./dist s3://udapeople-"${CIRCLE_WORKFLOW_ID:0:7}" --delete
       # Here's where you will add some code to rollback on failure      
+      - destroy_environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
                     
   deploy-backend:
     docker:
@@ -299,17 +312,31 @@ jobs:
       - image: python:3.7-alpine3.11
     steps:
       # Checkout code from git
+      - checkout
       # Add ssh keys with fingerprint
+      - add_ssh_keys:
+          fingerprints: [f0:7b:d4:33:e6:65:e7:bc:d0:6d:36:b6:b0:62:87:18]
       # attach workspace
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Install dependencies
           command: |
             # your code here
+            apk add --update ansible
       - run:
           name: Deploy backend
           command: |
             # your code here
-      # Here's where you will add some code to rollback on failure  
+            ansible-playbook -i .circleci/ansible/inventory.txt \
+              .circleci/ansible/deploy-backend.yml
+      # Here's where you will add some code to rollback on failure
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migrations:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   smoke-test:
     docker:

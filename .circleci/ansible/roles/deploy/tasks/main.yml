@@ -1,0 +1,12 @@
+---
+- name: "Copy backend files"
+  copy:
+    src: /root/project/backend/dist
+    dest: /home/ubuntu/backend/
+    backup: yes
+
+- name: "Run pm2"
+  shell: |
+    cd /home/ubuntu/backend
+    pm2 start main.js
+
