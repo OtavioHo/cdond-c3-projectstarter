@@ -251,9 +251,14 @@ jobs:
       - restore_cache:
           keys: [backend-build]
       - run:
-          name: Install awscli
+          name: Install Python
           command: |
-            sudo apt-get install awscli
+            sudo apt-get update
+            sudo apt-get install python3 python3-pip
+      - run:
+          name: Install awscli
+          command:
+            pip3 install awscli
       - run:
           name: Run migrations
           command: |
