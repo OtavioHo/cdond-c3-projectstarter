@@ -1,7 +1,7 @@
 ---
 - name: "Copy backend files"
   copy:
-    src: ./backend/dist
+    src: /root/project/backend/dist
     dest: /home/ubuntu/backend/
     backup: yes
 
