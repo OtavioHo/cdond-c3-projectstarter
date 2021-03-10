@@ -295,6 +295,7 @@ jobs:
           command: |
             # your code here
             apk add --update nodejs npm
+            apk install curl
             pip install awscli
       - run:
           name: Get backend url
@@ -338,6 +339,9 @@ jobs:
           command: |
             # your code here
             apk add --update ansible
+            apk add curl
+            apk install tree
+            tree .
             pip install awscli
       - run:
           name: Deploy backend
