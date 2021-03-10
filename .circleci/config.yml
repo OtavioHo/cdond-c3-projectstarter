@@ -309,8 +309,8 @@ jobs:
           name: Deploy frontend objects
           command: |
             # your code here
-            npm i
             cd frontend
+            npm i
             npm run build
             aws s3 ./dist s3://udapeople-"${CIRCLE_WORKFLOW_ID:0:7}" --delete
       # Here's where you will add some code to rollback on failure      
@@ -340,6 +340,7 @@ jobs:
             # your code here
             apk add --update ansible
             apk add curl
+            apk add --update nodejs npm
             pip install awscli
       - run:
           name: Deploy backend
