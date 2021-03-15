@@ -2,7 +2,7 @@
 - name: "Copy backend files"
   unarchive:
     src: /root/project/backend/dist.tar.gz
-    dest: /home/ubuntu/dist/
+    dest: /home/ubuntu/
 
 - name: "Run pm2"
   shell: |
