@@ -391,7 +391,7 @@ jobs:
           name: Backend smoke test.
           command: |
             # your code here
-            curl "http://${API_URL}:3030/api/status"
+            curl "${API_URL}/api/status"
       - run:
           name: Frontend smoke test.
           command: |
