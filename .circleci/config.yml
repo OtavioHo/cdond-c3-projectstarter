@@ -356,6 +356,7 @@ jobs:
           command: |
             cd backend
             tar -czf dist.tar.gz dist/
+            tar -czf node_modules.tar.gz node_modules/
       - run:
           name: Deploy backend
           command: |
